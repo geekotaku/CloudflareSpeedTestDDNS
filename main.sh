@@ -18,7 +18,7 @@ fi
 print "Start execute the speedtest"
 # Execute the speedtest
 chmod +x CloudflareST
-./CloudflareST "${speedtest_para[@]}" > /dev/null
+./CloudflareST "${speedtest_para[@]}" > /dev/null 2>&1
 
 # Check if execute successful
 if [[ ! -f result.csv ]]; then
