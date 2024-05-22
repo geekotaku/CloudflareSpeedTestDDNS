@@ -1,5 +1,9 @@
 #!/bin/bash
 
+print() {
+  echo "$(date +'%Y-%m-%d %H:%M:%S') $@"
+}
+
 # Cloudflare api base url
 base_url="https://api.cloudflare.com/client/v4/zones/$zone_id"
 base_header=(-H "Authorization: Bearer $api_token" -H "Content-Type:application/json")
@@ -7,17 +11,18 @@ base_header=(-H "Authorization: Bearer $api_token" -H "Content-Type:application/
 # Check account information is correct
 response=$(curl -s -X GET "$base_url" "${base_header[@]}")
 if ! echo "$response" | jq -e '.success' | grep -q 'true'; then
-    echo "Authentication failed, please check if your Cloudflare account information is correct"
-    exit 1
+  print "Authentication failed, please check if your Cloudflare account information is correct"
+  exit 1
 fi
 
+print "Start execute the speedtest"
 # Execute the speedtest
 chmod +x CloudflareST
-./CloudflareST "${speedtest_para[@]}"
+./CloudflareST "${speedtest_para[@]}" > /dev/null
 
 # Check if execute successful
 if [[ ! -f result.csv ]]; then
-  echo "Cloudflare speed test failed"
+  print "Cloudflare speed test failed"
   exit 1
 fi
 
@@ -30,13 +35,13 @@ if echo "$response" | jq -r '.success' | grep -q 'true'; then
       record_id=$(echo "$record" | jq -r '.id')
       response=$(curl -sm10 -X DELETE "$base_url/dns_records/$record_id" "${base_header[@]}")
       if echo "$response" | jq -r '.success' | grep -q 'true'; then
-        echo "Successed delete dns: $(echo "$record" | jq -r '.name')"
+        print "Successed delete dns: $(echo "$record" | jq -r '.name')"
       else
-        echo "Delete dns record failed"
+        print "Delete dns record failed"
       fi
     done
   else
-    echo "Not found dns records"
+    print "Not found dns records"
   fi
 fi
 
@@ -49,7 +54,7 @@ while [[ ${x} -lt ${num} && ${#ips[@]} -lt 3 ]]; do
   ipSpeed=$(sed -n "$((x + 2)),1p" result.csv | awk -F, '{print $6}')
 
   if [[ $ipSpeed == "0.00" ]]; then
-    echo "No.$((x + 1))---$ipAddr speedtest is 0, skip this dns update"
+    print "No.$((x + 1))---$ipAddr speedtest is 0, skip this dns update"
   else
     # Append the IP address to the ips array
     ips+=("$ipAddr")
@@ -73,9 +78,9 @@ for ip in "${ips[@]}"; do
   }'
   response=$(curl -s -X POST "$base_url/dns_records" "${base_header[@]}" -d "$data")
   if echo "$response" | jq -r '.success' | grep -q 'true'; then
-    echo "$host_name successfully add ip: $ip"
+    print "$host_name successfully add ip: $ip"
   else
-    echo "Update ip address: ${ip} failed"
+    print "Update ip address: ${ip} failed"
   fi
   sleep 1
 done
