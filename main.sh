@@ -34,12 +34,11 @@ if echo "$response" | jq -r '.success' | grep -q 'true'; then
     for record in $(echo "$records" | jq -c '.[]'); do
       record_id=$(echo "$record" | jq -r '.id')
       response=$(curl -sm10 -X DELETE "$base_url/dns_records/$record_id" "${base_header[@]}")
-      if echo "$response" | jq -r '.success' | grep -q 'true'; then
-        print "Successed delete dns: $(echo "$record" | jq -r '.name')"
-      else
+      if ! echo "$response" | jq -r '.success' | grep -q 'true'; then
         print "Delete dns record failed"
       fi
     done
+    print "Successfully deleted dns: $host_name"
   else
     print "Not found dns records"
   fi
@@ -78,7 +77,7 @@ for ip in "${ips[@]}"; do
   }'
   response=$(curl -s -X POST "$base_url/dns_records" "${base_header[@]}" -d "$data")
   if echo "$response" | jq -r '.success' | grep -q 'true'; then
-    print "$host_name successfully add ip: $ip"
+    print "Successfully added dns: $host_name with ip address: $ip"
   else
     print "Update ip address: ${ip} failed"
   fi
