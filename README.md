@@ -1,5 +1,6 @@
 包含 [CloudflareSpeedTest](https://github.com/XIU2/CloudflareSpeedTest) v2.2.5
 
+```yaml
 environment:
   # Cloudflare API 参数
   - host_name=
