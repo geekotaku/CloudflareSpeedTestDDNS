@@ -95,3 +95,4 @@ for ip in "${ips[@]}"; do
 done
 
 rm result.csv
+print "Cloudflare dns update completed"
