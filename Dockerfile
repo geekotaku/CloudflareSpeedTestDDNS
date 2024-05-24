@@ -1,6 +1,8 @@
 FROM alpine:3.19.1
 
-RUN apk add --no-cache bash dcron curl jq
+ENV TZ="Asia/Shanghai"
+
+RUN apk add --no-cache bash dcron tzdata curl jq && cp /usr/share/zoneinfo/$TZ /etc/localtime
 
 WORKDIR /app
 

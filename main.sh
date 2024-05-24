@@ -17,8 +17,18 @@ fi
 
 print "Start execute the speedtest"
 # Execute the speedtest
-chmod +x CloudflareST
-./CloudflareST "${speedtest_para[@]}" > /dev/null 2>&1
+arch=$(uname -m)
+if [[ $arch =~ "x86_64" ]]; then
+  CloudflareST="./CloudflareST_amd64"
+elif [[ $arch =~ "aarch64" ]]; then
+  CloudflareST="./CloudflareST_arm64"
+else
+  print "Unsupported architecture"
+  exit 1
+fi
+
+chmod +x $CloudflareST
+$CloudflareST "${speedtest_para[@]}" > /dev/null 2>&1
 
 # Check if execute successful
 if [[ ! -f result.csv ]]; then
@@ -47,8 +57,8 @@ fi
 declare -a ips
 num=$(awk -F, 'END {print NR-1}' result.csv)
 x=0  # Initialize counter
-# 3 ips to dns
-while [[ ${x} -lt ${num} && ${#ips[@]} -lt 3 ]]; do
+# Default 2 ips to dns
+while [[ ${x} -lt ${num} && ${#ips[@]} -lt ${host_ip_max:=2} ]]; do
   ipAddr=$(sed -n "$((x + 2)),1p" result.csv | awk -F, '{print $1}')
   ipSpeed=$(sed -n "$((x + 2)),1p" result.csv | awk -F, '{print $6}')
 
@@ -79,7 +89,7 @@ for ip in "${ips[@]}"; do
   if echo "$response" | jq -r '.success' | grep -q 'true'; then
     print "Successfully added dns: $host_name with ip address: $ip"
   else
-    print "Update ip address: ${ip} failed"
+    print "Add ip address: ${ip} failed"
   fi
   sleep 1
 done
