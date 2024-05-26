@@ -36,8 +36,9 @@ if [[ ! -f result.csv ]]; then
   exit 1
 fi
 
+# Check if all speed test is 0
 if [[ $(sed -n "2,1p" result.csv | awk -F, '{print $6}') == "0.00" ]]; then
-  print "All result speed test is 0"
+  print "All result speed test is 0, skip update dns"
   exit 1
 fi
 
