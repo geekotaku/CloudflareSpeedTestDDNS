@@ -36,6 +36,11 @@ if [[ ! -f result.csv ]]; then
   exit 1
 fi
 
+if [[ $(sed -n "2,1p" result.csv | awk -F, '{print $6}') == "0.00" ]]; then
+  print "All result speed test is 0"
+  exit 1
+fi
+
 # Get old dns and delete it
 response=$(curl -sm10 -X GET "$base_url/dns_records?name=$host_name&type=A" "${base_header[@]}")
 if echo "$response" | jq -r '.success' | grep -q 'true'; then
